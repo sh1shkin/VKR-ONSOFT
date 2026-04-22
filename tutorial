@@ -1,0 +1,24 @@
+(venv) PS D:\Выборка\VKR-ONSOFT> scp -P 44000 -r ./data.jsonl root@185.20.47.170:/root/Maks
+root@185.20.47.170's password: 
+(venv) PS D:\Выборка\VKR-ONSOFT> scp -P 44000 -r ./scr.py root@185.20.47.170:/root/Maks    
+root@185.20.47.170's password: 
+scr.py                                                                                                                                                                                   100% 6555   188.3KB/s   00:00    
+(venv) PS D:\Выборка\VKR-ONSOFT> scp -P 44000 -r ./scr.py root@185.20.47.170:/root/Maks
+root@185.20.47.170's password: 
+scr.py                                                                                                                                                                                   100% 7699   188.0KB/s   00:00    
+(venv) PS D:\Выборка\VKR-ONSOFT> scp -P 44000 -r ./scr.py root@185.20.47.170:/root/Maks
+root@185.20.47.170's password: 
+scr.py                                                                                                                                                                                   100% 7730   359.5KB/s   00:00    
+(venv) PS D:\Выборка\VKR-ONSOFT> scp -P 44000 -r ./scr.py root@185.20.47.170:/root/Maks
+root@185.20.47.170's password: 
+scr.py                                                                                                                                                                                   100% 8262   424.7KB/s   00:00    
+(venv) PS D:\Выборка\VKR-ONSOFT> scp -P 44000 -r ./scr.py root@185.20.47.170:/root/Maks
+root@185.20.47.170's password: 
+scr.py                                                                                                                                                                                   100% 7974   278.1KB/s   00:00    
+(venv) PS D:\Выборка\VKR-ONSOFT> scp -P 44000 -r ./scr.py root@185.20.47.170:/root/Maks
+root@185.20.47.170's password: 
+scr.py                                                                                                                                                                                   100% 8004   137.1KB/s   00:00    
+(venv) PS D:\Выборка\VKR-ONSOFT> scp -P 44000 -r ./scr.py root@185.20.47.170:/root/Maks
+root@185.20.47.170's password: 
+scr.py                                                                                                                                                                                   100% 8925   322.8KB/s   00:00    
+(venv) PS D:\Выборка\VKR-ONSOFT> 
