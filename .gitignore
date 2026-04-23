@@ -1,0 +1,12 @@
+venv/
+__pycache__/
+*.pyc
+
+qwen_output/checkpoint-*/
+qwen_output/optimizer.pt
+qwen_output/scheduler.pt
+qwen_output/rng_state.pth
+qwen_output/trainer_state.json
+qwen_output/training_args.bin
+qwen_output/dataset_preview.json
+qwen_output/train_log_history.json
