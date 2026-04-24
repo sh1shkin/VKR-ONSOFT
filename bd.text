@@ -1,0 +1,134 @@
+========================================================
+СУЩНОСТИ БАЗЫ ДАННЫХ (финальная версия)
+========================================================
+
+1. USERS
+-------------------------------------------------------------------
+id                UUID            PK
+username          VARCHAR(100)
+email             VARCHAR(255)    UNIQUE
+password_hash     VARCHAR(255)
+role              VARCHAR(20)     analyst / admin / observer
+is_active         BOOLEAN
+created_at        TIMESTAMPTZ
+
+
+2. OBJECTS (компании, заполняются через форму)
+-------------------------------------------------------------------
+id                UUID            PK
+name              VARCHAR(500)    полное наименование
+inn               VARCHAR(12)     ИНН (уникальный)
+kpp               VARCHAR(9)      КПП
+ogrn              VARCHAR(13)     ОГРН
+main_activity     TEXT            основной вид деятельности (напр. "ОКВЭД 56.10 ...")
+experience        JSONB           массив строк с описанием опыта
+director          VARCHAR(255)    ФИО директора
+chief_accountant  VARCHAR(255)    ФИО главного бухгалтера
+asset_book_value_rub BIGINT      балансовая стоимость активов, руб.
+tax_arrears_rub   BIGINT          недоимка по налогам, руб.
+tax_arrears_ratio_percent NUMERIC(5,2)  процент недоимки от активов
+compliance_facts  JSONB           массив строк (факты compliance)
+operational_facts JSONB           массив строк (операционные факты)
+created_at        TIMESTAMPTZ
+updated_at        TIMESTAMPTZ
+
+
+3. TENDER_DATA (тендеры, поступившие от модуля декомпозиции)
+-------------------------------------------------------------------
+id                UUID            PK
+raw_payload       JSONB           исходные тендерные данные
+source_message_id VARCHAR(255)    UNIQUE (дедупликация)
+status            VARCHAR(30)     new / analyzed
+created_at        TIMESTAMPTZ
+
+
+4. PROMPT_TEMPLATES
+-------------------------------------------------------------------
+id                UUID            PK
+name              VARCHAR(255)
+system_prompt     TEXT
+user_prompt_template TEXT
+parameters        JSONB           (temperature, max_tokens, top_p ...)
+version           INT
+is_active         BOOLEAN
+created_by        UUID -> users
+created_at        TIMESTAMPTZ
+UNIQUE (name, version)
+
+
+5. ANALYSES
+-------------------------------------------------------------------
+id                UUID            PK
+tender_data_id    UUID -> tender_data
+object_id         UUID -> objects
+input_data        JSONB           полный входной JSON, отправленный в LLM
+llm_response_raw  JSONB           полный ответ модели (output)
+prompt_template_id UUID -> prompt_templates
+status            VARCHAR(20)     new / reviewed / ignored
+critical_risk_flag BOOLEAN        есть ли риск уровня "высокий"
+final_decision_status VARCHAR(30) статус решения модели
+source_message_id VARCHAR(255)    UNIQUE (идемпотентность)
+created_at        TIMESTAMPTZ
+reviewed_by       UUID -> users
+reviewed_at       TIMESTAMPTZ
+
+
+6. RECOMMENDATIONS
+-------------------------------------------------------------------
+id                UUID            PK
+analysis_id       UUID -> analyses
+text              TEXT            текст рекомендации
+priority          VARCHAR(10)     high / medium / low (по умолчанию medium)
+status            VARCHAR(20)     new / accepted / done / rejected
+feedback_score    SMALLINT        -1 (бесполезно), 0, 1 (полезно)
+feedback_comment  TEXT
+status_changed_by UUID -> users
+status_changed_at TIMESTAMPTZ
+created_at        TIMESTAMPTZ
+
+
+7. RISKS
+-------------------------------------------------------------------
+id                UUID            PK
+analysis_id       UUID -> analyses
+description       TEXT            описание риска
+probability       VARCHAR(30)     высокая / средняя / низкая
+impact            TEXT            последствия
+risk_score        SMALLINT        числовой скоринг (high=100, medium=50, low=10)
+criticality       VARCHAR(10)     high / medium / low
+is_active         BOOLEAN         активен / миновал
+closed_by         UUID -> users
+closed_at         TIMESTAMPTZ
+created_at        TIMESTAMPTZ
+
+
+8. FEEDBACK (опционально)
+-------------------------------------------------------------------
+id                UUID            PK
+recommendation_id UUID -> recommendations
+user_id           UUID -> users
+score             SMALLINT        -1 / 0 / 1
+comment           TEXT
+created_at        TIMESTAMPTZ
+
+
+9. AUDIT_LOG
+-------------------------------------------------------------------
+id                BIGSERIAL       PK
+user_id           UUID -> users   (NULL для системных действий)
+action            VARCHAR(100)    LOGIN, STATUS_CHANGE, TEMPLATE_UPDATE, EXPORT ...
+entity_type       VARCHAR(50)     ANALYSIS, RECOMMENDATION, USER ...
+entity_id         UUID            ID сущности
+details           JSONB           детали изменения
+ip_address        INET
+created_at        TIMESTAMPTZ
+
+
+10. NOTIFICATION_SUBSCRIPTIONS (опционально)
+-------------------------------------------------------------------
+id                UUID            PK
+user_id           UUID -> users
+channel           VARCHAR(20)     web / email / telegram
+object_id         UUID -> objects  NULL = все компании
+is_enabled        BOOLEAN
+UNIQUE (user_id, channel, object_id)
