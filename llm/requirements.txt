@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+transformers
+peft
+accelerate
+bitsandbytes
+sentencepiece
+protobuf
+huggingface_hub
+pydantic

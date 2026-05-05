@@ -1,0 +1,78 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tender-postgres
+    environment:
+      POSTGRES_DB: tender_recommendation
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tender_recommendation"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  llm:
+    build:
+      context: ./llm
+      dockerfile: Dockerfile
+    container_name: tender-llm
+    environment:
+      MODEL_REPO_ID: shishk1n/ONS_TEN
+      ADAPTER_SUBFOLDER: qwen_output
+      HF_TOKEN: ${HF_TOKEN:-}
+      TRUST_REMOTE_CODE: "true"
+      USE_4BIT: "true"
+      STARTUP_LOAD: "true"
+      MAX_NEW_TOKENS: "2048"
+      TEMPERATURE: "0.0"
+      TOP_P: "0.95"
+    volumes:
+      - hf_cache:/cache/huggingface
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: tender-server
+    environment:
+      APP_ADDR: ":8080"
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/tender_recommendation?sslmode=disable
+      APP_JWT_SECRET: dev-secret-change-me
+      CLIENT_ORIGIN: http://localhost:5173
+      LLM_SERVICE_URL: http://llm:8000
+      APP_ENABLE_DEMO_SEED: "true"
+      INTEGRATION_API_KEY: ""
+    depends_on:
+      postgres:
+        condition: service_healthy
+      llm:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: /api
+    container_name: tender-client
+    depends_on:
+      - server
+    ports:
+      - "5173:80"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  hf_cache:
